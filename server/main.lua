@@ -6,10 +6,10 @@ RegisterServerEvent('qb-flightschool:server:AddLicense', function(license)
     local Player = QBCore.Functions.GetPlayer(src)
 	local licenses = Player.PlayerData.metadata["licences"]
 
-	if license == 'plane' or license == 'heli' or license == 'thflight' then
+	if license == 'aviationlicense1' or license == 'aviationlicense2' or license == 'theorytest' then
 		licenses[license] = true
 	end
-	if license == "thflight" then
+	if license == "theorytest" then
 		Player.Functions.AddItem('flight_test_permit', 1)
 		TriggerClientEvent('inventory:client:ItemBox', src, 'flight_test_permit', "add")
 	else
@@ -20,7 +20,7 @@ RegisterServerEvent('qb-flightschool:server:AddLicense', function(license)
 		end
 	end
 	Player.Functions.SetMetaData("licences", licenses)
-	if license ~= "thflight" then
+	if license ~= "theorytest" then
 		local permit = Player.Functions.GetItemByName("flight_license")
 		if permit then
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("license_updated"), 'success')
@@ -38,10 +38,10 @@ RegisterServerEvent('qb-flightschool:server:StartTest', function(data)
 	local licenses = Player.PlayerData.metadata["licences"]
 	local launch = false
 
-	if type == "thflight" then
+	if type == "theorytest" then
 		launch = true
 	else
-		if licenses['thflight'] then
+		if licenses['theorytest'] then
 			launch = true
 		else
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("no_code"), 'error')
@@ -58,4 +58,23 @@ RegisterServerEvent('qb-flightschool:server:StartTest', function(data)
 			TriggerClientEvent('QBCore:Notify', src, Lang:t("not_enough_money"), 'error')
 		end
 	end
+end)
+
+
+RegisterNetEvent('qb-flightschool:server:CompleteTest', function(testType)
+	local src = source
+	local player = QBCore.Functions.GetPlayer(src)
+	if not Player then return end
+
+	-- Removed old permit
+	Player.Functions.RemoveItem("flight_test_permit", 1)
+
+	-- Give player license item based on test type
+    if testType == "aviationlicense1" then
+        Player.Functions.AddItem("aviationlicense1", 1)
+    elseif testType == "aviationlicense2" then
+        Player.Functions.AddItem("aviationlicense2", 1)
+    else
+        print("WARNING: Unknown test type:", testType)
+    end
 end)

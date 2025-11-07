@@ -43,7 +43,7 @@ function StopTheoryTest(success)
 	SetNuiFocus(false)
 
 	if success then
-		TriggerServerEvent('qb-flightschool:server:AddLicense', 'thflight')
+		TriggerServerEvent('qb-flightschool:server:AddLicense', 'theorytest')
 		QBCore.Functions.Notify(Lang:t("passed_test"), "success")
 	else
 		QBCore.Functions.Notify(Lang:t("failed_test"), "error")
@@ -51,71 +51,122 @@ function StopTheoryTest(success)
 end
 
 function StartFlightTest(type)
-	print("spawn")
+    print("spawn")
+	-- START DEBUG LINES
+	-- Some debugging console information in case your vehicle isnt spawning comment out if you dont want them
+	print("Flight test type", type)
+	local model = Config.VehicleModels[type]
+	print("Vehicle model to spawn:", model)
+
+	-- more debug to check if the vehicle model exists comment these out if you dont want them
+	if not model then
+		print("ERROR: No Vehicle model found for type:", type)
+		return
+	end
+	-- END DEBUG LINES
     QBCore.Functions.SpawnVehicle(Config.VehicleModels[type], function(vehicle)
-		print("spawned")
+        print("spawned")
+
+        -- Vehicle setup
         SetVehicleNumberPlateText(vehicle, "TESTDRIVE" .. tostring(math.random(1000, 9999)))
         SetEntityHeading(vehicle, Config.Zones.VehicleSpawnPoint.Pos.h)
-        exports['LegacyFuel']:SetFuel(vehicle, 100.0)
-        --Menu.hidden = true
-        TaskWarpPedIntoVehicle(PlayerPedId(), vehicle, -1)
+		SetVehicleFuelLevel(vehicle, 100.0)
+
+        -- Wait until vehicle exists and is networked
+        local playerPed = PlayerPedId()
+        local attempts = 0
+        while not DoesEntityExist(vehicle) and attempts < 50 do
+            Citizen.Wait(100)
+            attempts = attempts + 1
+        end
+
+        -- Additional check: if player is not in vehicle, warp
+        if not IsPedInVehicle(playerPed, vehicle, false) then
+            TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+        end
+
+        -- Vehicle keys and other setup
         TriggerEvent("vehiclekeys:client:SetOwner", GetVehicleNumberPlateText(vehicle))
         SetVehicleCustomPrimaryColour(vehicle, 0, 0, 0)
         SetVehicleEngineOn(vehicle, true, true)
         SetVehicleDirtLevel(vehicle)
         SetVehicleUndriveable(vehicle, false)
         WashDecalsFromVehicle(vehicle, 1.0)
-		CurrentTest       = 'flight'
-		CurrentTestType   = type
-		CurrentCheckPoint = 0
-		LastCheckPoint    = -1
---		CurrentZoneType   = 'residence'
-		DriveErrors       = 0
---		IsAboveSpeedLimit = false
-		CurrentVehicle    = vehicle
-		LastVehicleHealth = GetEntityHealth(vehicle)
+
+        -- Flight test state
+        CurrentTest       = 'flight'
+        CurrentTestType   = type
+        CurrentCheckPoint = 0
+        LastCheckPoint    = -1
+        DriveErrors       = 0
+        CurrentVehicle    = vehicle
+        LastVehicleHealth = GetEntityHealth(vehicle)
     end, Config.Zones.VehicleSpawnPoint.Pos, true)
 end
 
+-- changed original function to grant the appropriate item on completion includes debug console information
+-- Stop the flight test (client-side)
 function StopFlightTest(success)
-	if success then
-		QBCore.Functions.Notify(Lang:t("passed_test"), "success")
-		TriggerServerEvent('qb-flightschool:server:AddLicense', CurrentTestType)
-	else
-		QBCore.Functions.Notify(Lang:t("failed_test"), "error")
-	end
-	CurrentTest     = nil
-	CurrentTestType = nil
+    if success then
+        QBCore.Functions.Notify(Lang:t("passed_test"), "success")
+
+        -- Trigger server-side item removal and license grant
+        if CurrentTestType then
+            TriggerServerEvent('qb-flightschool:server:CompleteTest', CurrentTestType)
+        else
+            print("WARNING: CurrentTestType is nil, cannot give license")
+        end
+
+        -- Trigger server license logic if needed
+        TriggerServerEvent('qb-flightschool:server:AddLicense', CurrentTestType)
+    else
+        QBCore.Functions.Notify(Lang:t("failed_test"), "error")
+    end
+
+    CurrentTest     = nil
+    CurrentTestType = nil
 end
 
---function SetCurrentZoneType(type)
---CurrentZoneType = type
---end
 
+
+
+--- Rewritten by Byanski_the_Dev for QBox ---
 function OpenFlightSchoolMenu()
-	local MenuSchoolOptions = {
-		{
-			header = Lang:t("driving_school"),
-			isMenuHeader = true
-		},
-	}
+    local menuOptions = {}
 
-	for k, v in pairs(Config.Licenses) do
-		MenuSchoolOptions[#MenuSchoolOptions+1] = {
-			header = v.name,
-			txt = Lang:t('school_item', {value = v.price}),
-			params = {
-				isServer = true,
-				event = "qb-flightschool:server:StartTest",
-				args = {
-					type = k,
-				}
-			}
-		}
-	end
-	exports['qb-menu']:openMenu(MenuSchoolOptions)
+    -- Add the menu header
+    menuOptions[#menuOptions+1] = {
+        title = Lang:t("driving_school"),
+        description = nil,
+        disabled = true
+    }
 
+    -- Add each license option
+    for k, v in pairs(Config.Licenses) do
+        menuOptions[#menuOptions+1] = {
+            title = v.name,
+            description = Lang:t('school_item', { value = v.price }),
+            serverEvent = 'qb-flightschool:server:StartTest', -- ✅ fixed
+            args = { type = k }
+        }
+    end
+
+    -- Add a Close option
+    menuOptions[#menuOptions+1] = {
+        title = 'Close Menu',
+        event = 'lib:closeMenu' -- ✅ this is fine, handled by ox_lib
+    }
+
+    -- Register and show the menu
+    lib.registerContext({
+        id = 'flight_school_menu',
+        title = Lang:t("driving_school"),
+        options = menuOptions
+    })
+
+    lib.showContext('flight_school_menu')
 end
+
 
 RegisterNUICallback('question', function(data, cb)
 	SendNUIMessage({
@@ -135,7 +186,7 @@ RegisterNUICallback('kick', function(data, cb)
 end)
 
 RegisterNetEvent('qb-flightschool:client:StartTest', function(type)
-	if type == "thflight" then
+	if type == "theorytest" then
 		StartTheoryTest()
 	else
 		StartFlightTest(type)

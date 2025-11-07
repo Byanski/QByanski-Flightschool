@@ -5,14 +5,14 @@ Config.MaxErrors       = 5
 Config.SpeedMultiplier = 3.6
 
 Config.Licenses = {
-	thflight	= {name = Lang:t("theory_test"),		price = 5000},
-	plane  		= {name = Lang:t("flight_test_plane"),	price = 100},
-	heli		= {name = Lang:t("flight_test_heli"),	price = 150},
+	theorytest	= {name = Lang:t("theory_test"),		price = 5000},
+	aviationlicense1  		= {name = Lang:t("flight_test_plane"),	price = 100},
+	aviationlicense2		= {name = Lang:t("flight_test_heli"),	price = 150},
 }
 
 Config.VehicleModels = {
-	plane  		 = 'dodo',
-	heli 		 = 'havok'
+	aviationlicense1  		 = 'dodo',
+	aviationlicense2 		 = 'havok'
 }
 
 --Config.SpeedLimits = {

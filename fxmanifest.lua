@@ -2,7 +2,7 @@ fx_version 'cerulean'
 
 game 'gta5'
 
-description 'QB Drive School'
+description 'Qbox Flight school and license - By Byanski_the_Dev'
 
 version '1.0.0'
 
@@ -10,6 +10,7 @@ shared_scripts {
     '@qb-core/shared/locale.lua',
     'locales/*.lua',
     'config.lua',
+	'@ox_lib/init.lua'
 }
 
 client_script 'client/main.lua'
