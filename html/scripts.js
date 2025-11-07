@@ -84,13 +84,57 @@ window.addEventListener('message', function (event) {
 	}
 });
 
+// Ensure question UI visibility and button functionality
+// window.addEventListener('message', function (event) {
+//    const data = event.data;
+//
+//    // Open the question interface manually (fallback if your openContainer() doesn't show it)
+//    if (data.openQuestion === true) {
+//        const container = document.getElementById('questionContainer');
+//        if (container) {
+//            container.style.display = 'block';
+//        } else {
+//            console.warn('questionContainer not found in HTML');
+ //       }
+ //   }
+//
+//    // Close it if requested
+//    if (data.openQuestion === false) {
+//        const container = document.getElementById('questionContainer');
+//        if (container) {
+//            container.style.display = 'none';
+//        }
+//    }
+//});
+
+//// Wire up button actions if not already handled
+//document.addEventListener('DOMContentLoaded', function() {
+//    const startButton = document.getElementById('startTest');
+//    const exitButton = document.getElementById('exitTest');
+//
+//    if (startButton) {
+//        startButton.addEventListener('click', function() {
+ //           $.post('https://QByanski-Flightschool/close'); // must match your resource name exactly
+  //      });
+  //  }
+
+ //   if (exitButton) {
+ //       exitButton.addEventListener('click', function() {
+ //           $.post('https://QByanski-Flightschool/kick');
+ //       });
+ //   }
+//}); 
+
+
+
+
 // Handle Button Presses
 $(".btnQuestion").click(function () {
-	$.post('https://qb-sna-flightschool/question', JSON.stringify({}));
+	$.post('https://QByanski-Flightschool/question', JSON.stringify({}));
 });
 
 $(".btnClose").click(function () {
-	$.post('https://qb-sna-flightschool/close', JSON.stringify({}));
+	$.post('https://Qbyanski-Flightschool/close', JSON.stringify({}));
 	userAnswer = [];
 	goodAnswer = [];
 	questionUsed = [];
@@ -98,7 +142,7 @@ $(".btnClose").click(function () {
 });
 
 $(".btnKick").click(function () {
-	$.post('https://qb-sna-flightschool/kick', JSON.stringify({}));
+	$.post('https://QByanski-Flightschool/kick', JSON.stringify({}));
 	userAnswer = [];
 	goodAnswer = [];
 	questionUsed = [];

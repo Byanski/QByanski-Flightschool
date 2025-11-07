@@ -22,15 +22,16 @@ function DrawMissionText(msg, time)
 end
 
 function StartTheoryTest()
-	CurrentTest = 'theory'
+    CurrentTest = 'theory'
 
-	SendNUIMessage({
-		openQuestion = true
-	})
+    SendNUIMessage({
+        openQuestion = true
+    })
 
-	SetTimeout(200, function()
-		SetNuiFocus(true, true)
-	end)
+    Citizen.Wait(100)
+    SetNuiFocusKeepInput(false)
+    SetNuiFocus(true, true)
+    print("✅ NUI Focus set for Theory Test") --debug message to ensure its working as intended
 end
 
 function StopTheoryTest(success)
